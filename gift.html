@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>A Gift for ZaarGull</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@300;400;500;600&family=Inter:wght@200;300;400;500&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        :root {
+            --rose: #e94560;
+            --rose-light: #ff6b81;
+            --rose-glow: rgba(233, 69, 96, 0.4);
+            --gold: #f0c27f;
+            --gold-light: #fceabb;
+            --deep-bg: #070711;
+            --card-bg: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f0ede8;
+            --text-secondary: rgba(255, 255, 255, 0.45);
+            --font-display: 'Playfair Display', Georgia, serif;
+            --font-body: 'Inter', -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--deep-bg);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            overflow: hidden;
+            height: 100vh;
+            height: 100dvh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ─── Three.js Canvas ─── */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* ─── Page Structure ─── */
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            display: none;
+        }
+
+        .page.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ─── Gift Box Page ─── */
+        .box-container {
+            perspective: 1200px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .gift-box {
+            width: 220px;
+            height: 220px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        /* Ambient glow behind the box */
+        .box-glow {
+            position: absolute;
+            width: 340px;
+            height: 340px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--rose-glow) 0%, transparent 70%);
+            filter: blur(40px);
+            animation: glowPulse 3s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes glowPulse {
+
+            0%,
+            100% {
+                opacity: 0.5;
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            50% {
+                opacity: 0.9;
+                transform: translate(-50%, -50%) scale(1.15);
+            }
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotateY(0deg);
+            }
+
+            25% {
+                transform: translateY(-14px) rotateY(3deg);
+            }
+
+            75% {
+                transform: translateY(-8px) rotateY(-2deg);
+            }
+
+            50% {
+                transform: translateY(-22px) rotateY(5deg);
+            }
+        }
+
+        .box-face {
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            background: linear-gradient(145deg, #1a1a35 0%, #12122a 50%, #1a1a35 100%);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .box-front {
+            transform: translateZ(110px);
+        }
+
+        .box-back {
+            transform: rotateY(180deg) translateZ(110px);
+        }
+
+        .box-right {
+            transform: rotateY(90deg) translateZ(110px);
+        }
+
+        .box-left {
+            transform: rotateY(-90deg) translateZ(110px);
+        }
+
+        .box-top {
+            transform: rotateX(90deg) translateZ(110px);
+            background: linear-gradient(145deg, #1e1e42 0%, #14143a 100%);
+        }
+
+        .box-bottom {
+            transform: rotateX(-90deg) translateZ(110px);
+        }
+
+        .ribbon {
+            position: absolute;
+            background: linear-gradient(135deg, var(--rose) 0%, var(--rose-light) 100%);
+            box-shadow: 0 0 12px var(--rose-glow);
+        }
+
+        .ribbon-vertical {
+            width: 22px;
+            height: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .ribbon-horizontal {
+            width: 100%;
+            height: 22px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .bow {
+            position: absolute;
+            top: -32px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 64px;
+            height: 32px;
+        }
+
+        .bow::before,
+        .bow::after {
+            content: '';
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            border: 3.5px solid var(--rose-light);
+            border-radius: 50% 50% 50% 0;
+            top: 0;
+            filter: drop-shadow(0 0 6px var(--rose-glow));
+        }
+
+        .bow::before {
+            left: 0;
+            transform: rotate(-45deg);
+        }
+
+        .bow::after {
+            right: 0;
+            transform: rotate(135deg);
+        }
+
+        .tap-hint {
+            margin-top: 70px;
+            color: var(--text-secondary);
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            font-weight: 300;
+            letter-spacing: 0.45em;
+            animation: hintPulse 2.5s ease-in-out infinite;
+            text-transform: uppercase;
+        }
+
+        @keyframes hintPulse {
+
+            0%,
+            100% {
+                opacity: 0.25;
+                transform: translateY(0);
+            }
+
+            50% {
+                opacity: 0.8;
+                transform: translateY(-3px);
+            }
+        }
+
+        /* ─── Gallery Page ─── */
+        .gallery-page {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 50px 20px;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+
+        .gallery-page.active {
+            display: block;
+        }
+
+        /* Custom scrollbar */
+        .gallery-page::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .gallery-page::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .gallery-page::-webkit-scrollbar-thumb {
+            background: rgba(233, 69, 96, 0.3);
+            border-radius: 10px;
+        }
+
+        .gallery-header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-top: 30px;
+        }
+
+        .gallery-header h1 {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 5vw, 3rem);
+            font-weight: 300;
+            letter-spacing: 0.15em;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #fff 0%, var(--gold-light) 50%, var(--rose-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gallery-header .divider {
+            display: block;
+            width: 60px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--rose), transparent);
+            margin: 18px auto 0;
+        }
+
+        .gallery-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding-bottom: 120px;
+        }
+
+        .section-label {
+            font-family: var(--font-body);
+            font-size: 0.7rem;
+            font-weight: 400;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* ─── Before/After Slider ─── */
+        .slider-container {
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto 60px;
+            position: relative;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow:
+                0 25px 70px rgba(0, 0, 0, 0.6),
+                0 0 0 1px rgba(255, 255, 255, 0.06),
+                0 0 40px rgba(233, 69, 96, 0.08);
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .slider-container.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .slider-image {
+            width: 100%;
+            display: block;
+        }
+
+        .slider-before {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            border-right: 2px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .slider-before img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .slider-handle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 46px;
+            height: 46px;
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 50%;
+            cursor: ew-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow:
+                0 4px 15px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(233, 69, 96, 0.15);
+            z-index: 10;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .slider-handle:hover,
+        .slider-handle:active {
+            transform: translate(-50%, -50%) scale(1.12);
+            box-shadow:
+                0 4px 20px rgba(0, 0, 0, 0.4),
+                0 0 30px rgba(233, 69, 96, 0.25);
+        }
+
+        .slider-handle svg {
+            width: 18px;
+            height: 18px;
+            fill: #333;
+        }
+
+        .slider-label {
+            position: absolute;
+            bottom: 14px;
+            padding: 6px 14px;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 400;
+            letter-spacing: 0.18em;
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .slider-label.before {
+            left: 14px;
+        }
+
+        .slider-label.after {
+            right: 14px;
+        }
+
+        /* ─── Flip Cards ─── */
+        .flip-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 28px;
+            margin-top: 30px;
+        }
+
+        .flip-card {
+            aspect-ratio: 1;
+            perspective: 1200px;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+
+        .flip-card.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.7s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front,
+        .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .flip-card-front {
+            background: var(--card-bg);
+            box-shadow:
+                0 10px 40px rgba(0, 0, 0, 0.4),
+                0 0 0 1px var(--glass-border);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .flip-card:hover .flip-card-front {
+            box-shadow:
+                0 15px 50px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(233, 69, 96, 0.15),
+                0 0 30px rgba(233, 69, 96, 0.06);
+        }
+
+        .flip-card-front img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .flip-card:hover .flip-card-front img {
+            transform: scale(1.04);
+        }
+
+        .flip-card-back {
+            background: linear-gradient(155deg,
+                    rgba(26, 26, 53, 0.95) 0%,
+                    rgba(18, 18, 42, 0.98) 100%);
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .flip-card-back::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 10%;
+            width: 80%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--rose-glow), transparent);
+        }
+
+        .flip-card-back h3 {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 400;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            letter-spacing: 0.08em;
+        }
+
+        .flip-card-back p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.55);
+            line-height: 1.7;
+            font-weight: 300;
+        }
+
+        .flip-hint {
+            position: absolute;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            letter-spacing: 0.15em;
+            color: rgba(255, 255, 255, 0.7);
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            pointer-events: none;
+        }
+
+        .flip-card:hover .flip-hint {
+            opacity: 1;
+        }
+
+        /* Go Back Button */
+        .go-back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(10, 15, 20, 0.8);
+            border: 1px solid #3fefef;
+            color: #3fefef;
+            text-decoration: none;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            border-radius: 5px;
+            z-index: 9999;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            pointer-events: none;
+            animation: delayedFadeIn 2s ease forwards;
+            animation-delay: 8s;
+            /* Appears after 8 seconds */
+        }
+
+        @keyframes delayedFadeIn {
+            to {
+                opacity: 1;
+                pointer-events: auto;
+            }
+        }
+
+        .go-back-btn:hover {
+            background: rgba(10, 15, 20, 0.95);
+            border-color: #6affff;
+            color: #6affff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2);
+        }
+
+        /* ─── Music Control ─── */
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            padding: 12px 22px;
+            border-radius: 50px;
+            cursor: pointer;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            transition: all 0.35s ease;
+            font-family: var(--font-body);
+            font-size: 0.72rem;
+            font-weight: 400;
+            letter-spacing: 0.15em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .music-control:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .music-control.playing {
+            background: rgba(233, 69, 96, 0.15);
+            border-color: rgba(233, 69, 96, 0.3);
+            color: var(--rose-light);
+        }
+
+        .eq-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 14px;
+        }
+
+        .eq-bar {
+            width: 3px;
+            background: currentColor;
+            border-radius: 2px;
+            transition: height 0.15s ease;
+        }
+
+        .eq-bars .eq-bar:nth-child(1) {
+            height: 4px;
+        }
+
+        .eq-bars .eq-bar:nth-child(2) {
+            height: 8px;
+        }
+
+        .eq-bars .eq-bar:nth-child(3) {
+            height: 5px;
+        }
+
+        .eq-bars .eq-bar:nth-child(4) {
+            height: 10px;
+        }
+
+        .music-control.playing .eq-bars .eq-bar {
+            animation: eqBounce 0.8s ease-in-out infinite alternate;
+        }
+
+        .music-control.playing .eq-bars .eq-bar:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .music-control.playing .eq-bars .eq-bar:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .music-control.playing .eq-bars .eq-bar:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .music-control.playing .eq-bars .eq-bar:nth-child(4) {
+            animation-delay: 0.1s;
+        }
+
+        @keyframes eqBounce {
+            0% {
+                height: 3px;
+            }
+
+            100% {
+                height: 14px;
+            }
+        }
+
+        /* ─── Sparkle Particles ─── */
+        .sparkle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        /* ─── Opening Animation ─── */
+        .opening .box-top {
+            animation: openTop 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .opening .box-front {
+            animation: openFront 0.9s 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes openTop {
+            to {
+                transform: rotateX(-130deg) translateZ(110px) translateY(-60px);
+                opacity: 0;
+            }
+        }
+
+        @keyframes openFront {
+            to {
+                transform: rotateX(-90deg) translateZ(110px) translateY(110px);
+                opacity: 0;
+            }
+        }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 768px) {
+            .gift-box {
+                width: 170px;
+                height: 170px;
+            }
+
+            .box-face {
+                width: 170px;
+                height: 170px;
+            }
+
+            .box-front {
+                transform: translateZ(85px);
+            }
+
+            .box-back {
+                transform: rotateY(180deg) translateZ(85px);
+            }
+
+            .box-right {
+                transform: rotateY(90deg) translateZ(85px);
+            }
+
+            .box-left {
+                transform: rotateY(-90deg) translateZ(85px);
+            }
+
+            .box-top {
+                transform: rotateX(90deg) translateZ(85px);
+            }
+
+            .box-bottom {
+                transform: rotateX(-90deg) translateZ(85px);
+            }
+
+            .box-glow {
+                width: 260px;
+                height: 260px;
+            }
+
+            .gallery-page {
+                padding: 30px 16px;
+            }
+
+            .flip-cards-grid {
+                grid-template-columns: 1fr;
+                gap: 22px;
+            }
+
+            .slider-handle {
+                width: 40px;
+                height: 40px;
+            }
+
+            .slider-label {
+                font-size: 0.6rem;
+                padding: 5px 10px;
+            }
+
+            .music-control {
+                bottom: 14px;
+                right: 14px;
+                padding: 10px 16px;
+                font-size: 0.65rem;
+            }
+
+            .gallery-header {
+                margin-bottom: 35px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .gift-box {
+                width: 140px;
+                height: 140px;
+            }
+
+            .box-face {
+                width: 140px;
+                height: 140px;
+            }
+
+            .box-front {
+                transform: translateZ(70px);
+            }
+
+            .box-back {
+                transform: rotateY(180deg) translateZ(70px);
+            }
+
+            .box-right {
+                transform: rotateY(90deg) translateZ(70px);
+            }
+
+            .box-left {
+                transform: rotateY(-90deg) translateZ(70px);
+            }
+
+            .box-top {
+                transform: rotateX(90deg) translateZ(70px);
+            }
+
+            .box-bottom {
+                transform: rotateX(-90deg) translateZ(70px);
+            }
+        }
+
+        /* Opening animation overrides for mobile */
+        @media (max-width: 768px) {
+            @keyframes openTop {
+                to {
+                    transform: rotateX(-130deg) translateZ(85px) translateY(-50px);
+                    opacity: 0;
+                }
+            }
+
+            @keyframes openFront {
+                to {
+                    transform: rotateX(-90deg) translateZ(85px) translateY(85px);
+                    opacity: 0;
+                }
+            }
+        }
+
+        /* ─── Go Back Button ─── */
+        .go-back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 10000;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            text-decoration: none;
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-family: var(--font-body);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .go-back-btn:hover {
+            background: rgba(233, 69, 96, 0.15);
+            border-color: rgba(233, 69, 96, 0.3);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(233, 69, 96, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Go Back Button -->
+    <a href="new_file.html?skip=true&completed=gift_world" class="go-back-btn">
+        ← RETURN TO MISSION
+    </a>
+
+    <div id="canvas-container"></div>
+
+    <!-- Box Page -->
+    <div class="page active" id="boxPage">
+        <div class="box-container" id="giftBox">
+            <div class="box-glow"></div>
+            <div class="gift-box">
+                <div class="box-face box-front">
+                    <div class="ribbon ribbon-vertical"></div>
+                    <div class="ribbon ribbon-horizontal"></div>
+                </div>
+                <div class="box-face box-back"></div>
+                <div class="box-face box-right"></div>
+                <div class="box-face box-left"></div>
+                <div class="box-face box-top">
+                    <div class="bow"></div>
+                </div>
+                <div class="box-face box-bottom"></div>
+            </div>
+        </div>
+        <div class="tap-hint">TAP TO OPEN</div>
+    </div>
+
+    <!-- Gallery Page -->
+    <div class="gallery-page" id="galleryPage">
+        <div class="gallery-header">
+            <h1>Something Special</h1>
+            <span class="divider"></span>
+        </div>
+
+        <div class="gallery-content">
+            <!-- Before/After Slider -->
+            <p class="section-label reveal-el">BEFORE · AFTER</p>
+            <div class="slider-container reveal-el" id="sliderContainer">
+                <img src="drawing_color.png" alt="Colored" class="slider-image" id="afterImage">
+                <div class="slider-before" id="sliderBefore">
+                    <img src="drawing_original.jpeg" alt="Original" id="beforeImage">
+                </div>
+                <div class="slider-handle" id="sliderHandle">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
+                        <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"
+                            transform="rotate(180 12 12)" />
+                    </svg>
+                </div>
+                <span class="slider-label before">ORIGINAL</span>
+                <span class="slider-label after">COLORED</span>
+            </div>
+
+            <!-- Flip Cards -->
+            <p class="section-label reveal-el" style="margin-top: 20px;">MEMORIES</p>
+            <div class="flip-cards-grid">
+                <div class="flip-card reveal-el" onclick="flipCard(this)">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="pic1.jpg" alt="Memory 1">
+                            <div class="flip-hint">TAP TO FLIP</div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Memory One</h3>
+                            <p>[Your message here]</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card reveal-el" onclick="flipCard(this)">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="pic2.jpg" alt="Memory 2">
+                            <div class="flip-hint">TAP TO FLIP</div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Memory Two</h3>
+                            <p>[Your message here]</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card reveal-el" onclick="flipCard(this)">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="pic3.jpg" alt="Memory 3">
+                            <div class="flip-hint">TAP TO FLIP</div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Memory Three</h3>
+                            <p>[Your message here]</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Music Control -->
+    <button class="music-control" id="musicBtn">
+        <div class="eq-bars">
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+        </div>
+        <span id="musicLabel">PLAY</span>
+    </button>
+
+    <audio id="bgMusic" loop>
+        <source src="https://assets.mixkit.co/music/preview/mixkit-happy-birthday-to-you-552.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // ─── Three.js Particle Background ───
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Particles
+        const particlesCount = 1200;
+        const particlesGeometry = new THREE.BufferGeometry();
+        const posArray = new Float32Array(particlesCount * 3);
+        const sizeArray = new Float32Array(particlesCount);
+        const colorArray = new Float32Array(particlesCount * 3);
+
+        for (let i = 0; i < particlesCount; i++) {
+            posArray[i * 3] = (Math.random() - 0.5) * 70;
+            posArray[i * 3 + 1] = (Math.random() - 0.5) * 70;
+            posArray[i * 3 + 2] = (Math.random() - 0.5) * 70;
+            sizeArray[i] = Math.random() * 3 + 0.5;
+
+            // Subtle warm tint variation
+            const tint = Math.random();
+            if (tint < 0.3) {
+                // Rose-ish
+                colorArray[i * 3] = 0.9 + Math.random() * 0.1;
+                colorArray[i * 3 + 1] = 0.5 + Math.random() * 0.2;
+                colorArray[i * 3 + 2] = 0.6 + Math.random() * 0.2;
+            } else if (tint < 0.5) {
+                // Gold-ish
+                colorArray[i * 3] = 0.95 + Math.random() * 0.05;
+                colorArray[i * 3 + 1] = 0.85 + Math.random() * 0.1;
+                colorArray[i * 3 + 2] = 0.6 + Math.random() * 0.2;
+            } else {
+                // White
+                const val = 0.85 + Math.random() * 0.15;
+                colorArray[i * 3] = val;
+                colorArray[i * 3 + 1] = val;
+                colorArray[i * 3 + 2] = val;
+            }
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
+
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.12,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.5,
+            blending: THREE.AdditiveBlending,
+            sizeAttenuation: true
+        });
+
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        // Soft nebula ring
+        const nebulaGeometry = new THREE.RingGeometry(12, 18, 64);
+        const nebulaMaterial = new THREE.MeshBasicMaterial({
+            color: 0xe94560,
+            transparent: true,
+            opacity: 0.015,
+            side: THREE.DoubleSide
+        });
+        const nebula = new THREE.Mesh(nebulaGeometry, nebulaMaterial);
+        nebula.rotation.x = Math.PI / 3;
+        scene.add(nebula);
+
+        camera.position.z = 22;
+
+        // Mouse-follow parallax
+        let mouseX = 0, mouseY = 0;
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+            mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        function animateScene() {
+            requestAnimationFrame(animateScene);
+            particlesMesh.rotation.y += 0.00025;
+            particlesMesh.rotation.x += 0.00008;
+
+            // Lerp camera toward mouse
+            camera.position.x += (mouseX * 1.5 - camera.position.x) * 0.02;
+            camera.position.y += (-mouseY * 1.0 - camera.position.y) * 0.02;
+            camera.lookAt(scene.position);
+
+            nebula.rotation.z += 0.0004;
+
+            renderer.render(scene, camera);
+        }
+        animateScene();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // ─── Box Opening ───
+        let isOpened = false;
+        let isPlaying = false;
+
+        document.getElementById('giftBox').addEventListener('click', openBox);
+
+        function openBox() {
+            if (isOpened) return;
+            isOpened = true;
+
+            const box = document.getElementById('giftBox');
+            box.classList.add('opening');
+
+            // Burst sparkles
+            const colors = ['#e94560', '#ff6b81', '#fceabb', '#f0c27f', '#ffffff', '#ff9ff3'];
+            for (let i = 0; i < 35; i++) {
+                setTimeout(() => createSparkle(colors[i % colors.length]), i * 25);
+            }
+
+            // Fade the glow
+            gsap.to('.box-glow', { opacity: 0, scale: 2, duration: 1.2, ease: 'power2.out' });
+
+            // Transition to gallery
+            setTimeout(() => {
+                const boxPage = document.getElementById('boxPage');
+                const galleryPage = document.getElementById('galleryPage');
+
+                gsap.to(boxPage, {
+                    opacity: 0,
+                    scale: 0.9,
+                    duration: 0.6,
+                    ease: 'power2.inOut',
+                    onComplete: () => {
+                        boxPage.style.display = 'none';
+                        galleryPage.classList.add('active');
+
+                        // Fade in gallery
+                        galleryPage.style.opacity = '0';
+                        gsap.to(galleryPage, {
+                            opacity: 1,
+                            duration: 0.8,
+                            ease: 'power2.out'
+                        });
+
+                        // Trigger reveals
+                        initScrollReveal();
+
+                        // Autoplay music
+                        const music = document.getElementById('bgMusic');
+                        music.play().then(() => {
+                            isPlaying = true;
+                            document.getElementById('musicBtn').classList.add('playing');
+                            document.getElementById('musicLabel').textContent = 'PAUSE';
+                        }).catch(() => {
+                            // Autoplay blocked — that's fine
+                        });
+                    }
+                });
+            }, 1100);
+        }
+
+        function createSparkle(color = '#fff') {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.left = '50%';
+            sparkle.style.top = '50%';
+            sparkle.style.background = color;
+            sparkle.style.boxShadow = `0 0 6px ${color}`;
+
+            const size = 3 + Math.random() * 5;
+            sparkle.style.width = size + 'px';
+            sparkle.style.height = size + 'px';
+
+            document.body.appendChild(sparkle);
+
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 80 + Math.random() * 250;
+
+            gsap.to(sparkle, {
+                x: Math.cos(angle) * distance,
+                y: Math.sin(angle) * distance,
+                opacity: 0,
+                scale: 0,
+                duration: 0.8 + Math.random() * 0.6,
+                ease: 'power3.out',
+                onComplete: () => sparkle.remove()
+            });
+        }
+
+        // ─── Scroll Reveal ───
+        function initScrollReveal() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry, i) => {
+                    if (entry.isIntersecting) {
+                        // Stagger by index in visible set
+                        const delay = Array.from(entry.target.parentElement.children)
+                            .filter(c => c.classList.contains('reveal-el'))
+                            .indexOf(entry.target) * 0.1;
+
+                        setTimeout(() => {
+                            entry.target.classList.add('revealed');
+                        }, delay * 1000);
+
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.15,
+                rootMargin: '0px 0px -40px 0px'
+            });
+
+            document.querySelectorAll('.reveal-el').forEach(el => observer.observe(el));
+        }
+
+        // ─── Before/After Slider ───
+        const sliderContainer = document.getElementById('sliderContainer');
+        const sliderBefore = document.getElementById('sliderBefore');
+        const sliderHandle = document.getElementById('sliderHandle');
+        let isDragging = false;
+
+        function updateSlider(x) {
+            const rect = sliderContainer.getBoundingClientRect();
+            let percentage = ((x - rect.left) / rect.width) * 100;
+            percentage = Math.max(2, Math.min(98, percentage));
+
+            sliderBefore.style.width = percentage + '%';
+            sliderHandle.style.left = percentage + '%';
+        }
+
+        sliderHandle.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            e.preventDefault();
+        });
+
+        sliderHandle.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                e.preventDefault();
+                updateSlider(e.clientX);
+            }
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                e.preventDefault();
+                updateSlider(e.touches[0].clientX);
+            }
+        }, { passive: false });
+
+        document.addEventListener('mouseup', () => isDragging = false);
+        document.addEventListener('touchend', () => isDragging = false);
+
+        sliderContainer.addEventListener('click', (e) => {
+            if (e.target !== sliderHandle) {
+                updateSlider(e.clientX);
+            }
+        });
+
+        // ─── Flip Cards ───
+        function flipCard(card) {
+            card.classList.toggle('flipped');
+        }
+
+        // ─── Music Control ───
+        const musicBtn = document.getElementById('musicBtn');
+        const musicLabel = document.getElementById('musicLabel');
+        const bgMusic = document.getElementById('bgMusic');
+
+        musicBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!isPlaying) {
+                bgMusic.play().then(() => {
+                    musicBtn.classList.add('playing');
+                    musicLabel.textContent = 'PAUSE';
+                    isPlaying = true;
+                }).catch(() => { });
+            } else {
+                bgMusic.pause();
+                musicBtn.classList.remove('playing');
+                musicLabel.textContent = 'PLAY';
+                isPlaying = false;
+            }
+        });
+
+        // Keep isPlaying in sync if media ends or gets interrupted
+        bgMusic.addEventListener('pause', () => {
+            if (!bgMusic.ended) return;
+            isPlaying = false;
+            musicBtn.classList.remove('playing');
+            musicLabel.textContent = 'PLAY';
+        });
+    </script>
+</body>
+
+</html>
